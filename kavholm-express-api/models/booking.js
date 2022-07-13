@@ -1,5 +1,5 @@
-const db = require("../db")
-const { BadRequestError, NotFoundError } = require("../utils/errors")
+const db = require("../db");
+const { BadRequestError, NotFoundError } = require("../utils/errors");
 
 class Booking {
   static async fetchBookingById(bookingId) {
@@ -37,13 +37,13 @@ class Booking {
       WHERE id = $1;
       `,
       [bookingId]
-    )
+    );
 
-    const booking = results.rows[0]
+    const booking = results.rows[0];
 
-    if (booking) return booking
+    if (booking) return booking;
 
-    throw new NotFoundError("No booking found with that id.")
+    throw new NotFoundError("No booking found with that id.");
   }
 
   static async listBookingsFromUser(user) {
@@ -75,9 +75,9 @@ class Booking {
       ORDER BY bookings.created_at DESC;
       `,
       [user.username]
-    )
+    );
 
-    return results.rows
+    return results.rows;
   }
 
   static async listBookingsForUserListings(user) {
@@ -110,10 +110,48 @@ class Booking {
       ORDER BY bookings.created_at DESC;
       `,
       [user.username]
-    )
+    );
 
-    return results.rows
+    return results.rows;
+  }
+
+  static async createBooking(newBooking, listing, user) {
+    const requiredFields = ["startDate", "endDate"];
+    requiredFields.forEach((field) => {
+      if (!newBooking?.hasOwnProperty(field)) {
+        throw new BadRequestError(
+          `Missing required field - ${field} - in request body.`
+        );
+      }
+    });
+
+    const results = await db.query(
+      `
+        INSERT INTO bookings (payment_method, start_date, end_date, guests, total_cost, listing_id, user_id)
+        VALUES ($1,($2)::date,($3)::date,$4,CEIL((($3)::date - ($2)::date + 1) * ($5 * 1.1)), $7, (SELECT id FROM users WHERE username = $6))
+        RETURNING id,
+                  payment_method AS "paymentMethod",
+                  listing_id AS "listingId",
+                  $6 AS "username",
+                  start_date AS "startDate",
+                  end_date AS "endDate",
+                  guests AS guests,          
+                  user_id AS "userId",       
+                  created_At AS "createdAt";
+      `,
+      [
+        newBooking.paymentMethod ? newBooking.paymentMethod : "card",
+        newBooking.startDate,
+        newBooking.endDate,
+        newBooking.guests ? newBooking.guests : 1,
+        listing.price,
+        user.username,
+        listing.id,
+      ]
+    );
+
+    return results.rows[0];
   }
 }
 
-module.exports = Booking
+module.exports = Booking;

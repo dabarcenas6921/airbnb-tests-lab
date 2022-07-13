@@ -1,18 +1,30 @@
-const { NotFoundError, BadRequestError, UnauthorizedError } = require("../utils/errors")
-const User = require("./user")
-const { commonBeforeAll, commonBeforeEach, commonAfterEach, commonAfterAll } = require("../tests/common")
+const {
+  NotFoundError,
+  BadRequestError,
+  UnauthorizedError,
+} = require("../utils/errors");
+const User = require("./user");
+const {
+  commonBeforeAll,
+  commonBeforeEach,
+  commonAfterEach,
+  commonAfterAll,
+} = require("../tests/common");
 
-beforeAll(commonBeforeAll)
-beforeEach(commonBeforeEach)
-afterEach(commonAfterEach)
-afterAll(commonAfterAll)
+beforeAll(commonBeforeAll);
+beforeEach(commonBeforeEach);
+afterEach(commonAfterEach);
+afterAll(commonAfterAll);
 
 describe("User", () => {
   /************************************** User.login */
 
   describe("Test login", () => {
     test("User can login successfully with proper credentials", async () => {
-      const user = await User.login({ email: "lebron@james.io", password: "password1" })
+      const user = await User.login({
+        email: "lebron@james.io",
+        password: "password1",
+      });
 
       expect(user).toEqual({
         id: expect.any(Number),
@@ -22,29 +34,29 @@ describe("User", () => {
         email: "lebron@james.io",
         isAdmin: false,
         createdAt: expect.any(Date),
-      })
-    })
+      });
+    });
 
     test("Unknown email throw unauthorized error", async () => {
-      expect.assertions(1)
+      expect.assertions(1);
 
       try {
-        await User.login({ email: "somebody@else.io", password: "password" })
+        await User.login({ email: "somebody@else.io", password: "password" });
       } catch (err) {
-        expect(err instanceof UnauthorizedError).toBeTruthy()
+        expect(err instanceof UnauthorizedError).toBeTruthy();
       }
-    })
+    });
 
     test("Invalid credentials throw unauthorized error", async () => {
-      expect.assertions(1)
+      expect.assertions(1);
 
       try {
-        await User.login({ email: "lebron@james.io", password: "wrong" })
+        await User.login({ email: "lebron@james.io", password: "wrong" });
       } catch (err) {
-        expect(err instanceof UnauthorizedError).toBeTruthy()
+        expect(err instanceof UnauthorizedError).toBeTruthy();
       }
-    })
-  })
+    });
+  });
 
   /************************************** User.register */
 
@@ -55,62 +67,62 @@ describe("User", () => {
       lastName: "Tester",
       email: "test@test.io",
       isAdmin: false,
-    }
+    };
 
     test("User can successfully register with proper credentials", async () => {
-      const user = await User.register({ ...newUser, password: "pw" })
+      const user = await User.register({ ...newUser, password: "pw" });
       expect(user).toEqual({
         id: expect.any(Number),
         username: newUser.username,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
+        first_name: newUser.firstName,
+        last_name: newUser.lastName,
         email: newUser.email,
-        isAdmin: newUser.isAdmin,
-        createdAt: expect.any(Date),
-      })
-    })
+        is_admin: newUser.isAdmin,
+        created_at: expect.any(Date),
+      });
+    });
 
     test("Registering with duplicate email throws error", async () => {
-      expect.assertions(1)
+      expect.assertions(1);
 
       try {
         await User.register({
           ...newUser,
           password: "pw",
-        })
+        });
         await User.register({
           ...newUser,
           password: "pw",
-        })
+        });
       } catch (err) {
-        expect(err instanceof BadRequestError).toBeTruthy()
+        expect(err instanceof BadRequestError).toBeTruthy();
       }
-    })
+    });
 
     test("Registering with duplicate username throws error", async () => {
-      expect.assertions(1)
+      expect.assertions(1);
 
       try {
         await User.register({
           ...newUser,
           password: "pw",
-        })
+        });
         await User.register({
           ...newUser,
           email: "different@different.io",
           password: "pw",
-        })
+        });
       } catch (err) {
-        expect(err instanceof BadRequestError).toBeTruthy()
+        expect(err instanceof BadRequestError).toBeTruthy();
       }
-    })
-  })
+    });
+  });
 
   /************************************** fetchUserByEmail */
 
   describe("Test fetchUserByEmail", () => {
     test("Can fetch a user by email", async () => {
-      const user = await User.fetchUserByEmail("lebron@james.io")
+      const user = await User.fetchUserByEmail("lebron@james.io");
       expect(user).toEqual({
         id: expect.any(Number),
         username: "lebron",
@@ -120,20 +132,20 @@ describe("User", () => {
         is_admin: false,
         password: expect.any(String),
         created_at: expect.any(Date),
-      })
-    })
+      });
+    });
 
     test("Unknown email returns nothing", async () => {
-      const user = await User.fetchUserByEmail("wrong@nope.nope")
-      expect(user).toBeFalsy()
-    })
-  })
+      const user = await User.fetchUserByEmail("wrong@nope.nope");
+      expect(user).toBeFalsy();
+    });
+  });
 
   /************************************** fetchUserByUsername */
 
   describe("Test fetchUserByUsername", () => {
     test("Can fetch a user by username", async () => {
-      const user = await User.fetchUserByUsername("lebron")
+      const user = await User.fetchUserByUsername("lebron");
       expect(user).toEqual({
         id: expect.any(Number),
         username: "lebron",
@@ -143,14 +155,14 @@ describe("User", () => {
         is_admin: false,
         password: expect.any(String),
         created_at: expect.any(Date),
-      })
-    })
+      });
+    });
 
     test("Unknown username returns nothing", async () => {
-      expect.assertions(1)
+      expect.assertions(1);
 
-      const user = await User.fetchUserByUsername("unknown")
-      expect(user).toBeFalsy()
-    })
-  })
-})
+      const user = await User.fetchUserByUsername("unknown");
+      expect(user).toBeFalsy();
+    });
+  });
+});
